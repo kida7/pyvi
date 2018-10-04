@@ -6,6 +6,7 @@ import re
 import string
 import unicodedata as ud
 
+
 class ViTokenizer:
     bi_grams = set()
     tri_grams = set()
@@ -80,8 +81,8 @@ class ViTokenizer:
 
         specials = ["==>", "->", "\.\.\.", ">>"]
         digit = "\d+([\.,_]\d+)+"
-        email = "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-        web = "^(http[s]?://)?(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+$"
+        email = "[A-Za-z0-9-_\.]+@([A-Za-z0-9_-]+\.)+[A-Za-z0-9_-]+"
+        web = "\w+://[^\s]+"
         datetime = [
             "\d{1,2}\/\d{1,2}(\/\d+)?",
             "\d{1,2}-\d{1,2}(-\d+)?",
@@ -114,11 +115,12 @@ class ViTokenizer:
         tmp = ViTokenizer.sylabelize(str)
         if len(tmp) == 0:
             return str
-        labels = ViTokenizer.model.predict([ViTokenizer.sent2features(tmp, False)])
+        labels = ViTokenizer.model.predict(
+            [ViTokenizer.sent2features(tmp, False)])
         output = tmp[0]
         for i in range(1, len(labels[0])):
             if labels[0][i] == 'I_W' and tmp[i] not in string.punctuation and\
-                            tmp[i-1] not in string.punctuation and\
+                tmp[i-1] not in string.punctuation and\
                     not tmp[i][0].isdigit() and not tmp[i-1][0].isdigit()\
                     and not (tmp[i][0].istitle() and not tmp[i-1][0].istitle()):
                 output = output + '_' + tmp[i]
@@ -131,15 +133,16 @@ class ViTokenizer:
         tmp = ViTokenizer.sylabelize(str)
         if len(tmp) == 0:
             return str
-        labels = ViTokenizer.model.predict([ViTokenizer.sent2features(tmp, False)])
+        labels = ViTokenizer.model.predict(
+            [ViTokenizer.sent2features(tmp, False)])
         token = tmp[0]
         tokens = []
         for i in range(1, len(labels[0])):
             if labels[0][i] == 'I_W' and tmp[i] not in string.punctuation and\
-                            tmp[i-1] not in string.punctuation and\
+                tmp[i-1] not in string.punctuation and\
                     not tmp[i][0].isdigit() and not tmp[i-1][0].isdigit()\
                     and not (tmp[i][0].istitle() and not tmp[i-1][0].istitle()):
-                token = token + '_' + tmp[i]
+                token = token + ' ' + tmp[i]
             else:
                 tokens.append(token)
                 token = tmp[i]
@@ -153,4 +156,3 @@ def spacy_tokenize(str):
 
 def tokenize(str):
     return ViTokenizer.tokenize(str)
-
